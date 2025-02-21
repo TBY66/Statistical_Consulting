@@ -1,0 +1,186 @@
+---
+title: "Homework 1"
+subtitle: "Summary of Titanic Dataset"
+date: today
+author: Tsai, Bing-Yan
+format:
+ pdf:
+    include-in-header:
+      - text: |
+         \usepackage{setspace,relsize}
+         \usepackage{geometry}
+         \geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
+#mainfont: "Microsoft JhengHei UI"
+#mainfont: "Microsoft JhengHei"
+mainfont: "Microsoft JhengHei Bold"
+toc: true
+lang: zh-Tw
+documentclass: article
+pdf-engine: xelatex
+execute:
+  tidy: true
+  echo: true
+  warning: false
+  message: false
+editor_options: 
+  chunk_output_type: inline
+---
+
+## 一、安裝套件及讀取資料
+
+```{r}
+#| results: asis
+# R Interface to Python
+library(reticulate)
+library(Hmisc)
+library(tinytex)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+titanic <- read.csv("titanic.csv")
+```
+
+## 二、變數類型
+
+```{r}
+str(titanic)
+```
+
+Nomimal variables：PassengerId, Survived, Name, Sex, Ticket, Cabin, Embarked\
+Ordinal variables：Pclass\
+Numeric variables：Age, Sibsp, Parch, Fare
+
+## 三、缺失值
+
+```{r}
+titanic_cleaned <- titanic
+titanic_cleaned[titanic_cleaned == ""] <- NA
+missing_values <- colSums(is.na(titanic_cleaned))
+print(missing_values)
+```
+
+891筆資料中，缺失值年齡有177筆、艙等有687筆、登船港口有2筆，其餘欄位皆無缺失值。
+
+## 四、類別變數描述
+
+```{r}
+# Survived
+survival_table <- titanic %>%
+  group_by(Survived) %>%
+  summarise(Count = n()) %>%
+  mutate(Count_Percentage = round(Count / nrow(titanic) * 100, 2)) %>%
+  mutate(Percentage = round(Count / sum(Count) * 100, 2))
+print(survival_table)
+
+# Pclass
+pclass_table <- titanic %>%
+  group_by(Pclass) %>%
+  summarise(Count = n(), 
+            Count_Percentage = round(Count / nrow(titanic) * 100, 2),
+            Survival_Rate = round(mean(Survived) * 100, 2))
+print(pclass_table)
+
+# Sex
+sex_table <- titanic %>%
+  group_by(Sex) %>%
+  summarise(Count = n(), 
+            Count_Percentage = round(Count / nrow(titanic) * 100, 2),
+            Survival_Rate = round(mean(Survived) * 100, 2))
+print(sex_table)
+
+# Embarked
+embarked_table <- titanic %>%
+  group_by(Embarked) %>%
+  summarise(Count = n(), 
+            Count_Percentage = round(Count / nrow(titanic) * 100, 2),
+            Survival_Rate = round(mean(Survived, na.rm = TRUE) * 100, 2))
+print(embarked_table)
+```
+
+表一為存活(1)及死亡(0)的人數及比例\
+表二為各艙等人數、比例及存活率\
+表三為男女性人數、比例及存活率\
+表四為各登船港口人數、比例及存活率
+
+## 五、數值變數描述
+
+```{r}
+#Summary of Age, SibSp, Parch, Fare
+numeric_summary <- summary(select(titanic, c(Age, SibSp, Parch, Fare)))
+print(numeric_summary)
+
+p1 <- ggplot(titanic, aes(x = Age, fill = as.factor(Survived))) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("red", "blue"),
+                    labels = c("Not Survived", "Survived")) +
+  labs(title = "Density Plot of Age by Survival",
+       x = "Age", y = "Density", fill = "Survival Status") +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10),
+    axis.title.x = element_text(size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6), 
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+  )
+
+p2 <- ggplot(titanic, aes(x = SibSp, fill = as.factor(Survived))) +
+  geom_density(alpha = 0.5, adjust = 1.5) +
+  scale_fill_manual(values = c("red", "blue"),
+                    labels = c("Not Survived", "Survived")) +
+  labs(title = "Density Plot of SibSp by Survival",
+       x = "Number of Siblings/Spouses", y = "Density", fill = "Survival Status") +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10),
+    axis.title.x = element_text(size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6), 
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+  )
+
+p3 <- ggplot(titanic, aes(x = Parch, fill = as.factor(Survived))) +
+  geom_density(alpha = 0.5, adjust = 1.5) +
+  scale_fill_manual(values = c("red", "blue"),
+                    labels = c("Not Survived", "Survived")) +
+  labs(title = "Density Plot of Parch by Survival",
+       x = "Number of Parents/Children", y = "Density", fill = "Survival Status") +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10),
+    axis.title.x = element_text(size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6), 
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+  )
+
+p4 <- ggplot(titanic, aes(x = Fare, fill = as.factor(Survived))) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("red", "blue"),
+                    labels = c("Not Survived", "Survived")) +
+  labs(title = "Density Plot of Fare by Survival",
+       x = "Fare", y = "Density", fill = "Survival Status") +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10),
+    axis.title.x = element_text(size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6), 
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+  )
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+表五為年齡、同行兄弟姊妹或配偶數量、同行父母或子女數量、票價的五數摘要。\
+圖為各數值變數，依存活和死亡別的密度圖，\
+左上為年齡、右上為同行兄弟姊妹或配偶數量、\
+左下為同行父母或子女數量、右下為票價。
