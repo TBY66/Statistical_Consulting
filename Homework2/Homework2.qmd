@@ -1,0 +1,86 @@
+---
+title: "Homework 2"
+subtitle: "Summary Report for the Mushroom Dataset"
+date: today
+author: Tsai, Bing-Yan
+format:
+ pdf:
+    include-in-header:
+      - text: |
+         \usepackage{setspace,relsize}
+         \usepackage{geometry}
+         \geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
+#mainfont: "Microsoft JhengHei UI"
+#mainfont: "Microsoft JhengHei"
+mainfont: "Microsoft JhengHei Bold"
+toc: true
+lang: zh-Tw
+documentclass: article
+pdf-engine: xelatex
+execute:
+  tidy: true
+  echo: true
+  warning: false
+  message: false
+---
+
+## 1.Variable Definition
+
+![Variable Definition](%22D:\Desktop\2025Spring\2025Spring_Statistical_Consulting\Homework2\hw2_variable_definition.jpg%22)
+
+## 2.Data Description
+
+```{r}
+#| results: asis
+library(reticulate)
+library(Hmisc)
+
+data <- read.csv("D:\\Desktop\\2025Spring\\2025Spring_Statistical_Consulting\\Homework2\\mushroom\\primary_data.csv", sep = ';')
+latex(describe(data), file="", options=list(tabenv="longtable"))
+```
+
+## 3.Table 1
+
+```{r}
+# import pandas as pd
+# import numpy as np
+# import warnings
+# warnings.filterwarnings('ignore')
+# df = pd.read_csv('primary_data.csv', sep = ';')
+# all_cols = df.columns
+# chr_cols = ["family", "name", "class"]
+# num_cols = ["cap-diameter", "stem-height", "stem-width"]
+# cat_cols = [col for col in all_cols if col not in (chr_cols + num_cols)]
+# for col in num_cols:
+#     clean_list = []
+#     for list_value in df[col].to_numpy():
+#         list_value = list_value.strip('[]').split(',')
+#         list_value = [float(v.strip()) for v in list_value]
+#         # value = (min + max)/2 if has two values 
+#         clean_list.append((list_value[0] + list_value[1])/2 if len(list_value)==2 else list_value[0])
+#     df[col] = clean_list
+# for col in cat_cols:
+#     variable_set = set()
+#     for list_value in df[col].to_numpy():
+#         if pd.isna(list_value):
+#             list_value = []
+#         elif isinstance(list_value, str):
+#             list_value = list_value.strip('[]').split(',')
+#             list_value = [v.strip() for v in list_value]
+#         variable_set.update(list_value)
+# 
+#     # Create One-Hot Encoded Columns
+#     for ele in variable_set:
+#         df[f'{col}.{ele}'] = df[col].apply(lambda x: "T" if isinstance(x, str) and ele in x else "F")
+# 
+#     df.drop(columns=[col], inplace=True)
+# df.to_csv('cleaned_data.csv', index=False)
+
+library(table1)
+df <- read.csv("D:\\Desktop\\2025Spring\\2025Spring_Statistical_Consulting\\Homework2\\mushroom\\cleaned_data.csv")
+chr_cols <- c("family", "name", "class")
+table1_cols <- setdiff(colnames(df), chr_cols)
+formula <- as.formula(paste("~", paste(table1_cols, collapse = " + "), " | class"))
+table1(formula, data = df)
+
+```
